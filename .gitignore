@@ -1,0 +1,18 @@
+﻿# Build output
+bin/
+obj/
+.vs/
+
+# User-specific files
+*.user
+*.suo
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+
+# Firebase keys (DO NOT COMMIT)
+careermd-service-account.json
+*.secret.json
+*.key.json
+.env
