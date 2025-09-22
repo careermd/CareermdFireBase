@@ -4,7 +4,10 @@ using Google.Apis.Auth.OAuth2;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
+using CsvHelper;
 
 namespace CareerMDFirebaseUserCreator
 {
@@ -24,31 +27,26 @@ namespace CareerMDFirebaseUserCreator
                 .Build();
 
             var credentialPath = config["Firebase:ServiceAccountPath"];
+            var csvPath = config["Firebase:UserCsvPath"];
 
             if (string.IsNullOrWhiteSpace(credentialPath) || !File.Exists(credentialPath))
             {
                 Console.WriteLine("Firebase service account file not found or invalid.");
                 return;
             }
+
+            if (string.IsNullOrWhiteSpace(csvPath) || !File.Exists(csvPath))
+            {
+                Console.WriteLine("User CSV file not found.");
+                return;
+            }
+
             FirebaseApp.Create(new AppOptions()
             {
                 Credential = GoogleCredential.FromFile(credentialPath)
             });
 
-            var users = new List<UserRecordModel>
-            {
-                new UserRecordModel { Email = "hkhokhar@careermd.com", Password = "TestPass123!" },
-                new UserRecordModel { Email = "sample1@careermd.com", Password = "TestPass456!" },
-                new UserRecordModel { Email = "sample2@careermd.com", Password = "TestPass789!" },
-                new UserRecordModel { Email = "sample3@careermd.com", Password = "TestPass321!" },
-                new UserRecordModel { Email = "sample4@careermd.com", Password = "TestPass6424!" },
-                new UserRecordModel { Email = "sample5@careermd.com", Password = "TestPass768!" },
-                new UserRecordModel { Email = "sample6@careermd.com", Password = "TestPass446!" },
-                new UserRecordModel { Email = "sample7@careermd.com", Password = "TestPass4663!" },
-                new UserRecordModel { Email = "sample8@careermd.com", Password = "TestPass132429!" },
-                new UserRecordModel { Email = "sample9@careermd.com", Password = "TestPass1235432!" },
-                new UserRecordModel { Email = "sample10@careermd.com", Password = "TestPass456yy5!" }
-            };
+            var users = ReadUsersFromCsv(csvPath);
 
             foreach (var user in users)
             {
@@ -85,6 +83,13 @@ namespace CareerMDFirebaseUserCreator
                 }
             }
             Console.WriteLine("User creation process completed.");
+        }
+
+        static List<UserRecordModel> ReadUsersFromCsv(string filePath)
+        {
+            using var reader = new StreamReader(filePath);
+            using var csv = new CsvReader(reader, CultureInfo.InvariantCulture);
+            return new List<UserRecordModel>(csv.GetRecords<UserRecordModel>());
         }
     }
 }
